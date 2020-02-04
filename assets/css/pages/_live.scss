@@ -76,28 +76,6 @@
   transition: background .3s;
   align-items: center;
 }
-.live__icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 32px;
-  flex: none;
-  background-color: var(--play);
-  position: relative;
-  display: none;
-  margin-right: 1.5em;
-  transition: .3s;
-
-  &::before {
-    position: absolute;
-    top: 10px;
-    left: 11px;
-    content: '';
-    height: 0;
-    border-left: 9px solid var(--color);
-    border-top: 6px solid transparent;
-    border-bottom: 6px solid transparent;
-  }
-}
 .live__image {
   display: block;
   position: relative;

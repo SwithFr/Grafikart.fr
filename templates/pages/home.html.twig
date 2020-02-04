@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+  Proof of concept Play-Pause / Youtube
+
+  <play-button></play-button>
+  <div style="width:500px;">
+    <youtube-player video="ilLxqeKfcGA"></youtube-player>
+  </div>
+
+  <button id="ok">Changer de video</button>
+  <script>
+    window.addEventListener('load', function () {
+      document.querySelector('youtube-player').addEventListener('progress', function (event) {
+        // console.log('Event', event)
+      })
+      document.querySelector('play-button').attachYoutubePlayer(document.querySelector('youtube-player'))
+      document.querySelector('#ok').addEventListener('click', function () {
+        document.querySelector('youtube-player').setAttribute('video', 'lTTajzrSkCw')
+      })
+    })
+  </script>
+{% endblock %}
