@@ -1,5 +1,5 @@
 /**
- * Element permettant de représenter un bouton de lecture avec progression
+ * Element permettant de représenter un bouton de lecture avec progression.
  *
  * @property {ShadowRoot} root
  * @property {HTMLButtonElement} button
@@ -114,15 +114,27 @@ export default class PlayButton extends HTMLElement {
    * @param {YoutubePlayer} player
    */
   attachYoutubePlayer (player) {
-    player.addEventListener('progress', e => {
-      this.setAttribute('progress', e.progress)
-    })
-    player.addEventListener('change', e => {
-      if (e.play) {
-        this.setAttribute('playing', 'playing')
-      } else {
-        this.removeAttribute('playing')
+    const onProgress =  e => {
+        this.setAttribute('progress', e.progress)
+    }
+    const onChange = e => {
+        if (e.play) {
+          this.setAttribute('playing', 'playing')
+        } else {
+          this.removeAttribute('playing')
+        }
       }
-    })
+    player.addEventListener('progress', onProgress)
+    player.addEventListener('change', onChange)
+    this.detachPlayer = () => {
+      player.removeEventListener('progress', onProgress)
+      player.removeEventListener('change', onChange)
+      this.detachPlayer = function () {}
+    }
   }
+
+  /**
+   * Détache le lecteur (supprime les listeners) du bouton de lecture.
+   */
+  detachPlayer () {}
 }

@@ -4,9 +4,13 @@
 let YT = null
 
 /**
+ * Element représentant une video youtube `<youtube-player video="UEINCHBN">`.
+ *
  * @property {ShadowRoot} root
  * @property {?number} timer Timer permettant de suivre la progression de la lecture
  * @property {YT.Player} player
+ * @fires YoutubePlayerProgressEvent
+ * @fires YoutubePlayerChangeEvent
  */
 export default class YoutubePlayer extends HTMLElement {
   static get observedAttributes () {
@@ -27,7 +31,7 @@ export default class YoutubePlayer extends HTMLElement {
 
   disconnectedCallback () {
     this.stopTimer()
-    this.dispatchEvent(new YoutubePlayerChange(YoutubePlayerChange.STOP))
+    this.dispatchEvent(new YoutubePlayerChangeEvent(YoutubePlayerChangeEvent.STOP))
   }
 
   async attributeChangedCallback (name, oldValue, newValue) {
@@ -62,10 +66,10 @@ export default class YoutubePlayer extends HTMLElement {
   onYoutubePlayerStateChange (event) {
     if (event.data === YT.PlayerState.PLAYING) {
       this.startTimer()
-      this.dispatchEvent(new YoutubePlayerChange(YoutubePlayerChange.PLAY))
+      this.dispatchEvent(new YoutubePlayerChangeEvent(YoutubePlayerChangeEvent.PLAY))
     } else {
       this.stopTimer()
-      this.dispatchEvent(new YoutubePlayerChange(YoutubePlayerChange.STOP))
+      this.dispatchEvent(new YoutubePlayerChangeEvent(YoutubePlayerChangeEvent.STOP))
     }
   }
 
@@ -74,7 +78,7 @@ export default class YoutubePlayer extends HTMLElement {
    */
   onYoutubePlayerReady (event) {
     this.startTimer()
-    this.dispatchEvent(new YoutubePlayerChange(YoutubePlayerChange.PLAY))
+    this.dispatchEvent(new YoutubePlayerChangeEvent(YoutubePlayerChangeEvent.PLAY))
   }
 
   /**
@@ -125,6 +129,7 @@ export default class YoutubePlayer extends HTMLElement {
  * Evènement représentant l'avancement de la lecture
  *
  * @property {number} progress % de progression en 0 et 100
+ * @event YoutubePlayerProgressEvent
  */
 class YoutubePlayerProgressEvent extends Event {
 
@@ -142,11 +147,12 @@ class YoutubePlayerProgressEvent extends Event {
  * Evènement représentant le changement d'état du lecteur (Play/Pause)
  *
  * @property {boolean} play
+ * @event YoutubePlayerChangeEvent
  */
-class YoutubePlayerChange extends Event {
+class YoutubePlayerChangeEvent extends Event {
   constructor (state) {
-    super('change');
-    if (state === YoutubePlayerChange.PLAY) {
+    super('change')
+    if (state === YoutubePlayerChangeEvent.PLAY) {
       this.play = true
     } else {
       this.play = false
@@ -154,8 +160,8 @@ class YoutubePlayerChange extends Event {
   }
 }
 
-YoutubePlayerChange.PLAY = 1
-YoutubePlayerChange.STOP = 2
+YoutubePlayerChangeEvent.PLAY = 1
+YoutubePlayerChangeEvent.STOP = 2
 
 /**
  * Charge l'API Youtube Player
