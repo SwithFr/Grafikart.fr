@@ -1,4 +1,5 @@
 /**
+ * Instance de l'API youtube iframe
  * @type {null|YT}
  */
 let YT = null
@@ -9,8 +10,6 @@ let YT = null
  * @property {ShadowRoot} root
  * @property {?number} timer Timer permettant de suivre la progression de la lecture
  * @property {YT.Player} player
- * @fires YoutubePlayerProgressEvent
- * @fires YoutubePlayerChangeEvent
  */
 export default class YoutubePlayer extends HTMLElement {
   static get observedAttributes () {
@@ -22,7 +21,6 @@ export default class YoutubePlayer extends HTMLElement {
     this.root = this.attachShadow({mode: 'open'})
     this.onYoutubePlayerStateChange = this.onYoutubePlayerStateChange.bind(this)
     this.onYoutubePlayerReady = this.onYoutubePlayerReady.bind(this)
-    this.dispatchProgress = this.dispatchProgress.bind(this)
     this.root.innerHTML = `
       ${this.buildStyles()}
       <div><div class="player"></div></div>
@@ -31,7 +29,6 @@ export default class YoutubePlayer extends HTMLElement {
 
   disconnectedCallback () {
     this.stopTimer()
-    this.dispatchEvent(new YoutubePlayerChangeEvent(YoutubePlayerChangeEvent.STOP))
   }
 
   async attributeChangedCallback (name, oldValue, newValue) {
@@ -66,10 +63,10 @@ export default class YoutubePlayer extends HTMLElement {
   onYoutubePlayerStateChange (event) {
     if (event.data === YT.PlayerState.PLAYING) {
       this.startTimer()
-      this.dispatchEvent(new YoutubePlayerChangeEvent(YoutubePlayerChangeEvent.PLAY))
-    } else {
+      this.dispatchEvent(new Event('play'))
+    } else if (event.data === YT.PlayerState.ENDED) {
       this.stopTimer()
-      this.dispatchEvent(new YoutubePlayerChangeEvent(YoutubePlayerChangeEvent.STOP))
+      this.dispatchEvent(new Event('ended'))
     }
   }
 
@@ -78,7 +75,7 @@ export default class YoutubePlayer extends HTMLElement {
    */
   onYoutubePlayerReady (event) {
     this.startTimer()
-    this.dispatchEvent(new YoutubePlayerChangeEvent(YoutubePlayerChangeEvent.PLAY))
+    this.dispatchEvent(new Event('play'))
   }
 
   /**
@@ -88,6 +85,7 @@ export default class YoutubePlayer extends HTMLElement {
   buildStyles () {
     return `<style>
       div {
+        background-color:black;
         position: relative;
         padding-bottom: 56.25%;
       }
@@ -114,54 +112,27 @@ export default class YoutubePlayer extends HTMLElement {
     if (this.timer) {
       return null
     }
-    this.dispatchProgress()
-    this.timer = window.setInterval(this.dispatchProgress, 1000)
+    this.dispatchEvent(new Event('timeupdate'))
+    this.timer = window.setInterval(() => this.dispatchEvent(new Event('timeupdate')), 1000)
   }
-
-  dispatchProgress () {
-    const progress = Math.round(100 * this.player.getCurrentTime() / this.player.getDuration())
-    this.dispatchEvent(new YoutubePlayerProgressEvent(progress))
-  }
-
-}
-
-/**
- * Evènement représentant l'avancement de la lecture
- *
- * @property {number} progress % de progression en 0 et 100
- * @event YoutubePlayerProgressEvent
- */
-class YoutubePlayerProgressEvent extends Event {
 
   /**
-   * @param {number} progress % de progression en 0 et 100
+   * Durée de la vidéo
+   * @return {number}
    */
-  constructor (progress) {
-    super('progress')
-    this.progress = progress
+  get duration () {
+    return this.player ? this.player.getDuration() : null
+  }
+
+  /**
+   * Position de la lecture
+   * @return {number}
+   */
+  get currentTime () {
+    return this.player ? this.player.getCurrentTime() : null
   }
 
 }
-
-/**
- * Evènement représentant le changement d'état du lecteur (Play/Pause)
- *
- * @property {boolean} play
- * @event YoutubePlayerChangeEvent
- */
-class YoutubePlayerChangeEvent extends Event {
-  constructor (state) {
-    super('change')
-    if (state === YoutubePlayerChangeEvent.PLAY) {
-      this.play = true
-    } else {
-      this.play = false
-    }
-  }
-}
-
-YoutubePlayerChangeEvent.PLAY = 1
-YoutubePlayerChangeEvent.STOP = 2
 
 /**
  * Charge l'API Youtube Player

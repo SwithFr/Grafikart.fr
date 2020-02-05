@@ -111,30 +111,26 @@ export default class PlayButton extends HTMLElement {
   /**
    * Attache le bouton a un player
    *
-   * @param {YoutubePlayer} player
+   * @param {YoutubePlayer|HTMLVideoElement} video
    */
-  attachYoutubePlayer (player) {
-    const onProgress =  e => {
-        this.setAttribute('progress', e.progress)
-    }
-    const onChange = e => {
-        if (e.play) {
-          this.setAttribute('playing', 'playing')
-        } else {
-          this.removeAttribute('playing')
-        }
-      }
-    player.addEventListener('progress', onProgress)
-    player.addEventListener('change', onChange)
-    this.detachPlayer = () => {
-      player.removeEventListener('progress', onProgress)
-      player.removeEventListener('change', onChange)
-      this.detachPlayer = function () {}
+  attachVideo (video) {
+    const onTimeUpdate = () => this.setAttribute('progress', (100 * video.currentTime / video.duration).toString())
+    const onPlay = () => this.setAttribute('playing', 'playing')
+    const onEnded = () => this.removeAttribute('playing')
+    video.addEventListener('timeupdate', onTimeUpdate)
+    video.addEventListener('play', onPlay)
+    video.addEventListener('ended', onEnded)
+    this.detachVideo = () => {
+      video.removeEventListener('timeupdate', onTimeUpdate)
+      video.removeEventListener('play', onPlay)
+      video.removeEventListener('ended', onEnded)
+      this.removeAttribute('playing')
+      this.detachVideo = function () {}
     }
   }
 
   /**
    * Détache le lecteur (supprime les listeners) du bouton de lecture.
    */
-  detachPlayer () {}
+  detachVideo () {}
 }
